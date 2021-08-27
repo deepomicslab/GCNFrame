@@ -59,6 +59,23 @@ The model with best validation accuracy will be saved as GNN\_model.pt
 > + ```fasta_file```: The DNA sequences used for training in fasta format.
 > + ```label_file```: The labels for the DNA sequences for training (should have the same order as fasta_file).
 > + ```feature_file```: Other features (like gene density) for the DNA sequences for training (should have the same order as fasta_file) (default=None).
+> + ```K```: The length of K-mer for encoding (default=3). 
+> + ```d```: The number of spaced distance used for encoding (default=3).
+> + ```thread```: The number of thread used for encoding (default=10).
 
-
+###  ```class GNNmodel.model```
+> + ```label_num```: The number of labels.
+> + ```other_feature_dim```: The dimension for other features, 0 if not available.
+> + ```K```: The length of K-mer for encoding (default=3). 
+> + ```d```: The number of spaced distance used for encoding (default=3).
+> + ```node_hidden_dim```: The size for kmer nodes after transformation(default=3).
+> + ```gcn_dim```: The size of output of SAGEConv (default=128).
+> + ```gcn_layer_num```: The number of SAGEConv layers (default=4).
+> + ```cnn_dim```: The size of output of convolutional layers (default=64).
+> + ```cnn_layer_num```: The number of convolutional layers (default=3).
+> + ```cnn_kernel_size```: The kernel size of convolutional layers (default=8).
+> + ```fc_dim```: The number of neurons for the fully connected layers (default=100).
+> + ```dropout_rate```: The dropout rate (default=0.2).
+> + ```pnode_nn```: Whether transfor primary nodes (default=True).
+> + ```fnode_nn```: Whether transfor target nodes (default=True).
 
