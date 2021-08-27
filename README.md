@@ -17,7 +17,7 @@ cd GNNFrame
 python setup.py build_ext --inplace
 ```
 
-## examples
+## Examples
 The framework makes it easy to train your customized models with a few lines of codes.
 ```Python
 # This is an example to train a two-classes model.
@@ -53,4 +53,12 @@ Epoch 14| Loss: 0.4019| Train accuracy: 0.9241| Validation accuracy: 0.8839
 Epoch 15| Loss: 0.3960| Train accuracy: 0.9342| Validation accuracy: 0.9161
 ```
 The model with best validation accuracy will be saved as GNN\_model.pt
+
+## Parameters
+###  ```class Biodata.Biodata```
+> + ```fasta_file```: The DNA sequences used for training in fasta format.
+> + ```label_file```: The labels for the DNA sequences for training (should have the same order as fasta_file).
+> + ```feature_file```: Other features (like gene density) for the DNA sequences for training (should have the same order as fasta_file) (default=None).
+
+
 
