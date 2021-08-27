@@ -76,6 +76,13 @@ The model with best validation accuracy will be saved as GNN\_model.pt
 > + ```cnn_kernel_size```: The kernel size of convolutional layers (default=8).
 > + ```fc_dim```: The number of neurons for the fully connected layers (default=100).
 > + ```dropout_rate```: The dropout rate (default=0.2).
-> + ```pnode_nn```: Whether transfor primary nodes (default=True).
-> + ```fnode_nn```: Whether transfor target nodes (default=True).
+> + ```pnode_nn```: Whether transform primary nodes (default=True).
+> + ```fnode_nn```: Whether transform target nodes (default=True).
 
+###  ```GNNmodel.train```
+> + ```learning_rate```: The learning rate for training (default=1e-4). 
+> + ```batch_size```: The batch_size for training (default=64).
+> + ```epoch_n```: The number of training epoches (default=200).
+> + ```random_seed```: The random seed for train-validation split (default=111).
+> + ```val_split```: The validation size (default=0.1).
+> + ```weighted_sampling```: Whether use weighted sampling for training (default=True).
