@@ -25,8 +25,29 @@ from GNNFrame import Biodata, GNNmodel
 import torch
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-data = Biodata.Biodata(fasta_file="data/nature_2017.fasta", label_file="data/lifestyle_label.txt", feature_file="data/CDD_protein_feature.txt")
+data = Biodata.Biodata(fasta_file="example_data/nature_2017.fasta", label_file="example_data/lifestyle_label.txt", feature_file="example_data/CDD_protein_feature.txt")
 dataset = data.encode(thread=20)
 model = GNNmodel.model(label_num=2, other_feature_dim=206).to(device)
 GNNmodel.train(dataset, model, weighted_sampling=True)
-``` 
+```
+
+```Output
+Encoding sequences...
+Epoch 0| Loss: 0.6335| Train accuracy: 0.7480| Validation accuracy: 0.8839
+Epoch 1| Loss: 0.5605| Train accuracy: 0.8165| Validation accuracy: 0.7032
+Epoch 2| Loss: 0.5042| Train accuracy: 0.8469| Validation accuracy: 0.8065
+Epoch 3| Loss: 0.4873| Train accuracy: 0.8344| Validation accuracy: 0.7677
+Epoch 4| Loss: 0.4559| Train accuracy: 0.8703| Validation accuracy: 0.8194
+Epoch 5| Loss: 0.4533| Train accuracy: 0.8763| Validation accuracy: 0.7806
+Epoch 6| Loss: 0.4372| Train accuracy: 0.8931| Validation accuracy: 0.8387
+Epoch 7| Loss: 0.4409| Train accuracy: 0.8842| Validation accuracy: 0.8581
+Epoch 8| Loss: 0.4357| Train accuracy: 0.8858| Validation accuracy: 0.8516
+Epoch 9| Loss: 0.4314| Train accuracy: 0.8987| Validation accuracy: 0.8387
+Epoch 10| Loss: 0.4246| Train accuracy: 0.8992| Validation accuracy: 0.8581
+Epoch 11| Loss: 0.4085| Train accuracy: 0.9180| Validation accuracy: 0.8839
+Epoch 12| Loss: 0.4071| Train accuracy: 0.9290| Validation accuracy: 0.8903
+Epoch 13| Loss: 0.4095| Train accuracy: 0.9170| Validation accuracy: 0.8839
+Epoch 14| Loss: 0.4019| Train accuracy: 0.9241| Validation accuracy: 0.8839
+Epoch 15| Loss: 0.3960| Train accuracy: 0.9342| Validation accuracy: 0.9161
+```
+ 
