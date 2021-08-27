@@ -25,12 +25,14 @@ from GNNFrame import Biodata, GNNmodel
 import torch
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-data = Biodata.Biodata(fasta_file="example_data/nature_2017.fasta", label_file="example_data/lifestyle_label.txt", feature_file="example_data/CDD_protein_feature.txt")
+data = Biodata.Biodata(fasta_file="/home/ruohawang2/dataset/Phage_nature2017/nature_2017.fasta", 
+        label_file="/home/ruohawang2/dataset/Phage_nature2017/kmer_encoding/lifestyle_label.txt",
+        feature_file="/home/ruohawang2/06.GNN_framework/phage_lifestyle/dataset/nature_2017/CDD_feature/CDD_protein_feature.txt")
 dataset = data.encode(thread=20)
 model = GNNmodel.model(label_num=2, other_feature_dim=206).to(device)
 GNNmodel.train(dataset, model, weighted_sampling=True)
 ```
-
+The output is shown bellow:
 ```Output
 Encoding sequences...
 Epoch 0| Loss: 0.6335| Train accuracy: 0.7480| Validation accuracy: 0.8839
@@ -50,4 +52,5 @@ Epoch 13| Loss: 0.4095| Train accuracy: 0.9170| Validation accuracy: 0.8839
 Epoch 14| Loss: 0.4019| Train accuracy: 0.9241| Validation accuracy: 0.8839
 Epoch 15| Loss: 0.3960| Train accuracy: 0.9342| Validation accuracy: 0.9161
 ```
- 
+The model with best validation accuracy will be saved as GNN\_model.pt
+
