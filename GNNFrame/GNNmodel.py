@@ -10,6 +10,7 @@ from torch.utils.data.sampler import WeightedRandomSampler
 
 import random
 from collections import Counter
+from GNNFrame import Biodata
 
 class model(nn.Module):
     def __init__(self, label_num, other_feature_dim, K=3, d=3, node_hidden_dim=3, gcn_dim=128, gcn_layer_num=4, cnn_dim=64, cnn_layer_num=3, cnn_kernel_size=8, fc_dim=100, dropout_rate=0.2, pnode_nn=True, fnode_nn=True):
@@ -33,20 +34,26 @@ class model(nn.Module):
         self.pnode_d = nn.Linear(self.pnode_num * self.pnode_dim, self.pnode_num * self.node_hidden_dim)
         self.fnode_d = nn.Linear(self.fnode_num, self.fnode_num * self.node_hidden_dim)
         
-        self.gconvs = nn.ModuleList()
+        self.gconvs_1 = nn.ModuleList()
+        self.gconvs_2 = nn.ModuleList()
+        
         if self.pnode_nn:
             pnode_dim_temp = self.node_hidden_dim
         else:
             pnode_dim_temp = self.pnode_dim
+        
         if self.fnode_nn:
             fnode_dim_temp = self.node_hidden_dim
         else:
             fnode_dim_temp = 1
+        
         for l in range(self.gcn_layer_num):
             if l == 0:
-                self.gconvs.append(pyg_nn.SAGEConv((fnode_dim_temp, pnode_dim_temp), self.gcn_dim))
+                self.gconvs_1.append(pyg_nn.SAGEConv((fnode_dim_temp, pnode_dim_temp), self.gcn_dim))
+                self.gconvs_2.append(pyg_nn.SAGEConv((self.gcn_dim, fnode_dim_temp), self.gcn_dim))
             else:                                   
-                self.gconvs.append(pyg_nn.SAGEConv((fnode_dim_temp, self.gcn_dim), self.gcn_dim))
+                self.gconvs_1.append(pyg_nn.SAGEConv((self.gcn_dim, self.gcn_dim), self.gcn_dim))
+                self.gconvs_2.append(pyg_nn.SAGEConv((self.gcn_dim, self.gcn_dim), self.gcn_dim))
         
         self.lns = nn.ModuleList()
         for l in range(self.gcn_layer_num-1):
@@ -71,7 +78,9 @@ class model(nn.Module):
     def forward(self, data):
         x_f = data.x_src
         x_p = data.x_dst
-        edge_index = data.edge_index
+        edge_index_forward = data.edge_index[:,::2]
+        edge_index_backward = data.edge_index[[1, 0], :][:,1::2]
+
         if self.other_feature_dim:
             other_feature = torch.reshape(data.other_feature, (-1, self.other_feature_dim)) 
         
@@ -92,11 +101,15 @@ class model(nn.Module):
             x_f = torch.reshape(x_f, (-1, 1))
 
         for i in range(self.gcn_layer_num):
-            x_p = self.gconvs[i]((x_f, x_p), edge_index)
+            x_p = self.gconvs_1[i]((x_f, x_p), edge_index_forward)
             x_p = F.relu(x_p)
             x_p = F.dropout(x_p, p=self.dropout, training=self.training)
+            x_f = self.gconvs_2[i]((x_p, x_f), edge_index_backward)
+            x_f = F.relu(x_f)
+            x_f = F.dropout(x_f, p=self.dropout, training=self.training)
             if not i == self.gcn_layer_num - 1:
                 x_p = self.lns[i](x_p)
+                x_f = self.lns[i](x_f)
 
         x = torch.reshape(x_p, (-1, self.gcn_dim, self.pnode_num))
         
@@ -124,7 +137,7 @@ class model(nn.Module):
 
         return out
 
-def train(dataset, model, learning_rate=1e-4, batch_size=64, epoch_n=200, random_seed=111, val_split=0.1, weighted_sampling=True, device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
+def train(dataset, model, learning_rate=1e-4, batch_size=64, epoch_n=200, random_seed=111, val_split=0.1, weighted_sampling=True, model_name="GNN_model.pt", device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
     random.seed(random_seed)
     data_list = list(range(0, len(dataset)))
     test_list = random.sample(data_list, int(len(dataset) * val_split))
@@ -168,16 +181,16 @@ def train(dataset, model, learning_rate=1e-4, batch_size=64, epoch_n=200, random
             train_acc += (torch.argmax(pred, 1).flatten() == label).type(torch.float).mean().item()
         
         # test accuracy
-        test_acc = test(test_loader, model, device)
+        test_acc = evaluation(test_loader, model, device)
         if test_acc > old_test_acc:
-            torch.save(model, "GNN_model.pt")
+            torch.save(model, model_name)
             old_test_acc = test_acc
         print("Epoch {}| Loss: {:.4f}| Train accuracy: {:.4f}| Validation accuracy: {:.4f}".format(epoch, training_running_loss/(i+1), train_acc/(i+1), test_acc))
 
     return model
 
 
-def test(loader, model, device):
+def evaluation(loader, model, device):
     model.eval()
     correct = 0
     for data in loader:
@@ -192,4 +205,22 @@ def test(loader, model, device):
     acc = correct / total
 
     return acc
+
+def test(fasta_file, model_name="GNN_model.pt", feature_file=None, output_file="test_output.txt", thread=10, K=3, d=3, device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
+    data = Biodata.Biodata(fasta_file=fasta_file, feature_file=feature_file, K=K, d=d)
+    testset = data.encode(thread=thread)
+    model = torch.load(model_name)
+    loader = DataLoader(testset, batch_size=len(testset), shuffle=False, follow_batch=['x_src', 'x_dst'])
+    model.eval()
+    correct = 0
+    for data in loader:
+        with torch.no_grad():
+            data = data.to(device)
+            pred = model(data)
+            pred = pred.argmax(dim=1)
+    pred = pred.cpu().numpy()
+    f = open(output_file, "w")
+    for each in pred:
+        f.write(str(each) + "\n")
+    f.close()
 

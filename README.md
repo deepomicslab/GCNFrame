@@ -31,6 +31,7 @@ data = Biodata.Biodata(fasta_file="example_data/nature_2017.fasta",
 dataset = data.encode(thread=20)
 model = GNNmodel.model(label_num=2, other_feature_dim=206).to(device)
 GNNmodel.train(dataset, model, weighted_sampling=True)
+GNNmodel.test("GNN_model.pt", fasta_file="example_data/nature_2017.fasta", feature_file="example_data/CDD_protein_feature.txt")
 ```
 The output is shown bellow:
 ```Output
@@ -56,9 +57,9 @@ The model with best validation accuracy will be saved as GNN\_model.pt
 
 ## Parameters
 ###  ```class Biodata.Biodata```
-> + ```fasta_file```: The DNA sequences used for training in fasta format.
-> + ```label_file```: The labels for the DNA sequences for training (should have the same order as fasta_file).
-> + ```feature_file```: Other features (like gene density) for the DNA sequences for training (should have the same order as fasta_file) (default=None).
+> + ```fasta_file```: The DNA sequences used for training and evaluation in fasta format.
+> + ```label_file```: The labels for the DNA sequences for training and evaluation (should have the same order as fasta_file).
+> + ```feature_file```: Other features (like gene density) for the DNA sequences for training and evaluation (should have the same order as fasta_file) (default=None).
 > + ```K```: The length of K-mer for encoding (default=3). 
 > + ```d```: The number of spaced distance used for encoding (default=3).
 > + ```thread```: The number of thread used for encoding (default=10).
@@ -86,3 +87,15 @@ The model with best validation accuracy will be saved as GNN\_model.pt
 > + ```random_seed```: The random seed for train-validation split (default=111).
 > + ```val_split```: The validation size (default=0.1).
 > + ```weighted_sampling```: Whether use weighted sampling for training (default=True).
+> + ```model_name```: The saved model name (default="GNN_model.pt").
+
+###  ```GNNmodel.test```
+> + ```fasta_file```: The DNA sequences used for test in fasta format. 
+> + ```model_name```: The saved model name (default="GNN_model.pt").
+> + ```feature_file```: Other features (like gene density) for the DNA sequences for test (should have the same order as fasta_file) (default=None).
+> + ```output_file```: The output file name (default="test_output.txt").
+> + ```thread```: The number of thread used for encoding (default=10).
+> + ```K```: The length of K-mer for encoding (default=3). 
+> + ```d```: The number of spaced distance used for encoding (default=3).
+
+

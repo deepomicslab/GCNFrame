@@ -37,9 +37,11 @@ class GraphDataset():
 
             x_p = torch.tensor(self.pnode_feature[i, :, :], dtype=torch.float)
             x_f = torch.tensor(self.fnode_feature[i, :, :], dtype=torch.float)
-            y = torch.tensor([self.graph_label[i]], dtype=torch.long)
-
-            data = BipartiteData(x_src=x_f, x_dst=x_p, edge_index=edge_index, y=y, num_nodes=None)
+            if type(self.graph_label) == np.ndarray:
+                y = torch.tensor([self.graph_label[i]], dtype=torch.long)
+                data = BipartiteData(x_src=x_f, x_dst=x_p, edge_index=edge_index, y=y, num_nodes=None)
+            else:
+                data = BipartiteData(x_src=x_f, x_dst=x_p, edge_index=edge_index, num_nodes=None)
             
             if type(self.other_feature) == np.ndarray:
                 other_feature = torch.tensor(self.other_feature[i, :], dtype=torch.float)
@@ -50,7 +52,7 @@ class GraphDataset():
         return data_list
 
 class Biodata:
-    def __init__(self, fasta_file, label_file, feature_file=None, K=3, d=3):
+    def __init__(self, fasta_file, label_file=None, feature_file=None, K=3, d=3):
         self.dna_seq = {}
         for seq_record in SeqIO.parse(fasta_file, "fasta"):
             self.dna_seq[seq_record.id] = str(seq_record.seq)
@@ -70,9 +72,13 @@ class Biodata:
             self.edge.append([a, i])
             self.edge.append([b, i])
         self.edge = np.array(self.edge).T
-        self.label = np.loadtxt(label_file)
+        
+        if label_file:
+            self.label = np.loadtxt(label_file)
+        else:
+            self.label = None
     
-    def encode(self, thread):
+    def encode(self, thread=10):
         print("Encoding sequences...")
         seq_list = list(self.dna_seq.values())
         pool = Pool(thread)
