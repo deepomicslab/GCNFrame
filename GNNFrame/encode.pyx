@@ -41,7 +41,7 @@ cdef np.ndarray[np.float64_t, ndim=1] _matrix_encoding(str seq, int K, int d):
     length = len(seq)
     num_seq = _num_transfer(seq)
     loc = _num_transfer_loc(num_seq, K)
-    dis = [list(range(-1, 0)), list(range(0, 1)), list(range(1, 2)), list(range(2, 3)),
+    dis = [list(range(0, 1)), list(range(1, 2)), list(range(2, 3)),
             list(range(3, 5)), list(range(5, 9)), list(range(9, 17)), list(range(17, 33)),
             list(range(33, 65))]
     if d == 1:
@@ -53,8 +53,8 @@ cdef np.ndarray[np.float64_t, ndim=1] _matrix_encoding(str seq, int K, int d):
             _loc_transfer_matrix(loc, list(range(1, 2)), K)))
     else:
         feature = np.hstack((
-            _loc_transfer_matrix(loc, list(range(-1, 0)), K),
-            _loc_transfer_matrix(loc, list(range(0, 1)), K)))
+            _loc_transfer_matrix(loc, list(range(0, 1)), K),
+            _loc_transfer_matrix(loc, list(range(1, 2)), K)))
         for i in range(2, d):
             feature = np.hstack((feature, _loc_transfer_matrix(loc, dis[i], K)))
      
