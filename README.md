@@ -1,5 +1,5 @@
-# a GNN framework for genomics
-This is a python package for genomics study with a GNN(Graph Neural Networks) framework.
+# a GCN framework for genomics
+This is a python package for genomics study with a GCN(Graph Convolutional Networks) framework.
 
 # Getting started
 
