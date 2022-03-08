@@ -12,13 +12,13 @@ This is a python package for genomics study with a GNN(Graph Neural Networks) fr
 
 ## Install
 ```shell
-git lfs clone https://github.com/deepomicslab/GNNFrame.git
+git clone https://github.com/deepomicslab/GNNFrame.git
 cd GNNFrame
 python setup.py build_ext --inplace
 ```
 
 ## Examples
-The framework makes it easy to train your customized models with a few lines of codes.
+The framework makes it easy to train your customized models with a few lines of codes. The example data can be downloaded from <https://drive.google.com/drive/folders/1VtNE0Pk0fM9b3N_WfbKc1x2IqDu8Ny02?usp=sharing>.
 ```Python
 # This is an example to train a two-classes model.
 from GNNFrame import Biodata, GNNmodel
