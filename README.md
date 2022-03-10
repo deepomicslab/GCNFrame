@@ -83,7 +83,7 @@ The model with best validation accuracy will be saved as GNN\_model.pt
 ###  ```GNNmodel.train```
 > + ```learning_rate```: The learning rate for training (default=1e-4). 
 > + ```batch_size```: The batch_size for training (default=64).
-> + ```epoch_n```: The number of training epoches (default=200).
+> + ```epoch_n```: The number of training epoches (default=20).
 > + ```random_seed```: The random seed for train-validation split (default=111).
 > + ```val_split```: The validation size (default=0.1).
 > + ```weighted_sampling```: Whether use weighted sampling for training (default=True).

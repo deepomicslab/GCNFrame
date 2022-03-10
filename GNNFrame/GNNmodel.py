@@ -137,7 +137,7 @@ class model(nn.Module):
 
         return out
 
-def train(dataset, model, learning_rate=1e-4, batch_size=64, epoch_n=200, random_seed=111, val_split=0.1, weighted_sampling=True, model_name="GNN_model.pt", device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
+def train(dataset, model, learning_rate=1e-4, batch_size=64, epoch_n=20, random_seed=111, val_split=0.1, weighted_sampling=True, model_name="GNN_model.pt", device=torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
     random.seed(random_seed)
     data_list = list(range(0, len(dataset)))
     test_list = random.sample(data_list, int(len(dataset) * val_split))
