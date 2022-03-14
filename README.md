@@ -1,4 +1,4 @@
-# a GCN framework for genomics
+# a GP-GCN framework for genomics
 This is a python package for genomics study with a GP-GCN (Gapped Pattern Graph Convolutional Networks) framework.
 
 # Getting started
