@@ -18,7 +18,7 @@ python setup.py build_ext --inplace
 ```
 
 ## Examples
-The framework makes it easy to train your customized models with a few lines of codes. The example data can be downloaded from <https://drive.google.com/drive/folders/1VtNE0Pk0fM9b3N_WfbKc1x2IqDu8Ny02?usp=sharing>.
+The framework makes it easy to train your customized models with a few lines of codes. The example data can be downloaded from [Google Drive](https://drive.google.com/drive/folders/1VtNE0Pk0fM9b3N_WfbKc1x2IqDu8Ny02?usp=sharing).
 ```Python
 # This is an example to train a two-classes model.
 from GCNFrame import Biodata, GCNmodel
