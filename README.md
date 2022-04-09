@@ -102,4 +102,5 @@ The model with best validation accuracy will be saved as GCN\_model.pt
 > + ```K```: The length of K-mer for encoding (default=3). 
 > + ```d```: The number of spaced distance used for encoding (default=3).
 
-
+### Maintainer
+WANG Ruohan ruohawang2-c@my.cityu.edu.hk
