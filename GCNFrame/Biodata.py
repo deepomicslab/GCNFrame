@@ -2,12 +2,12 @@ import numpy as np
 from Bio import SeqIO
 from multiprocessing import Pool
 from functools import partial
-from . import encode
 
 import torch
 import torch_geometric.transforms as T
 import torch_geometric.utils as ut
 from torch_geometric.data import Data
+from GCNFrame import encode_seq
 
 class BipartiteData(Data):
     def _add_other_feature(self, other_feature) :
@@ -82,7 +82,7 @@ class Biodata:
         print("Encoding sequences...")
         seq_list = list(self.dna_seq.values())
         pool = Pool(thread)
-        partial_encode_seq = partial(encode.matrix_encoding, K=self.K, d=self.d)
+        partial_encode_seq = partial(encode_seq.matrix_encoding, K=self.K, d=self.d)
         feature = np.array(pool.map(partial_encode_seq, seq_list))
         pool.close()
         pool.join()

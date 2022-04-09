@@ -207,7 +207,7 @@ def evaluation(loader, model, device):
     return acc
 
 def test(fasta_file, model_name="GCN_model.pt", feature_file=None, output_file="test_output.txt", thread=10, K=3, d=3, device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
-    data = Biodata.Biodata(fasta_file=fasta_file, feature_file=feature_file, K=K, d=d)
+    data = Biodata(fasta_file=fasta_file, feature_file=feature_file, K=K, d=d)
     testset = data.encode(thread=thread)
     model = torch.load(model_name)
     loader = DataLoader(testset, batch_size=len(testset), shuffle=False, follow_batch=['x_src', 'x_dst'])

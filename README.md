@@ -7,10 +7,14 @@ This is a python package for genomics study with a GP-GCN (Gapped Pattern Graph 
 + cython
 + numpy
 + Biopython
-+ pytorch 1.9.0
++ pytorch 1.7.1
 + pytorch\_geometric 1.7.0
 
 ## Install
+```shell
+pip install GCNFrame
+```
+Or
 ```shell
 git clone https://github.com/deepomicslab/GCNFrame.git
 cd GCNFrame
@@ -25,7 +29,7 @@ from GCNFrame import Biodata, GCNmodel
 import torch
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
-data = Biodata.Biodata(fasta_file="example_data/nature_2017.fasta", 
+data = Biodata(fasta_file="example_data/nature_2017.fasta", 
         label_file="example_data/lifestyle_label.txt",
         feature_file="example_data/CDD_protein_feature.txt")
 dataset = data.encode(thread=20)
