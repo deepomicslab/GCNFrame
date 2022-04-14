@@ -1,6 +1,8 @@
 # a GP-GCN framework for genomics
 This is a python package for genomics study with a GP-GCN (Gapped Pattern Graph Convolutional Networks) framework.
 
+![image](https://github.com/deepomicslab/GCNFrame/blob/master/GCNframework.png)
+
 # Getting started
 
 ## Prerequisite
