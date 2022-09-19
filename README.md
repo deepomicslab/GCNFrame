@@ -37,7 +37,7 @@ data = Biodata(fasta_file="example_data/nature_2017.fasta",
 dataset = data.encode(thread=20)
 model = GCNmodel.model(label_num=2, other_feature_dim=206).to(device)
 GCNmodel.train(dataset, model, weighted_sampling=True)
-GCNmodel.test("GCN_model.pt", fasta_file="example_data/nature_2017.fasta", feature_file="example_data/CDD_protein_feature.txt")
+GCNmodel.test(model_name="GCN_model.pt", fasta_file="example_data/nature_2017.fasta", feature_file="example_data/CDD_protein_feature.txt")
 ```
 The output is shown bellow:
 ```Output
