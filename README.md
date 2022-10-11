@@ -19,7 +19,7 @@ pip install GCNFrame
 Or
 ```shell
 git clone https://github.com/deepomicslab/GCNFrame.git
-cd GCNFrame
+cd GCNFrame/GCNFrame
 python setup.py build_ext --inplace
 ```
 
