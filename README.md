@@ -21,6 +21,7 @@ Or
 git clone https://github.com/deepomicslab/GCNFrame.git
 cd GCNFrame/GCNFrame
 python setup.py build_ext --inplace
+cd ../
 ```
 
 ## Examples
