@@ -88,10 +88,7 @@ class Biodata:
         pool.join()
         self.pnode_feature = feature.reshape(-1, self.d, 4**(self.K*2))
         self.pnode_feature = np.moveaxis(self.pnode_feature, 1, 2)
-        if self.d == 1:
-            zero_layer = feature.reshape(-1, self.d, 4**self.K, 4**self.K)[:, 0, :, :]
-        else:
-            zero_layer = feature.reshape(-1, self.d, 4**self.K, 4**self.K)[:, 1, :, :]
+        zero_layer = feature.reshape(-1, self.d, 4**self.K, 4**self.K)[:, 0, :, :]
         self.fnode_feature = np.sum(zero_layer, axis=2).reshape(-1, 4**self.K, 1)
         del zero_layer
         
