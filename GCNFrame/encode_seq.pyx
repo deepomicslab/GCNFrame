@@ -20,15 +20,20 @@ cdef list _num_transfer_loc(str num_seq, int K):
     
     return loc
 
-cdef np.ndarray[np.float64_t, ndim=1] _loc_transfer_matrix(list loc_list, list dis_list, int K):
+cdef np.ndarray[np.float64_t, ndim=1] _loc_transfer_matrix(list loc_list, list dis_list, int K, int length):
     cdef np.ndarray[np.float64_t, ndim=2] matrix
     cdef np.ndarray[np.float64_t, ndim=1] new_matrix
+    cdef int num
     matrix = np.zeros((4**K, 4**K))
+    num = 0
     for dis in dis_list:
         for i in range(0, len(loc_list)-K-dis):
             matrix[loc_list[i]][loc_list[i+K+dis]] += 1
-
-    new_matrix = matrix.flatten()/len(dis_list)
+        num = num + (length - 2*K - dis + 1.0)
+    
+    matrix = matrix / num
+    
+    new_matrix = matrix.flatten()
     
     return new_matrix
 
@@ -45,20 +50,20 @@ cdef np.ndarray[np.float64_t, ndim=1] _matrix_encoding(str seq, int K, int d):
             list(range(3, 5)), list(range(5, 9)), list(range(9, 17)), list(range(17, 33)),
             list(range(33, 65))]
     if d == 1:
-        feature = np.hstack((_loc_transfer_matrix(loc, list(range(0, 1)), K)))
+        feature = np.hstack((_loc_transfer_matrix(loc, list(range(0, 1)), K, length)))
     
     elif d == 2:
         feature = np.hstack((
-            _loc_transfer_matrix(loc, list(range(0, 1)), K),
-            _loc_transfer_matrix(loc, list(range(1, 2)), K)))
+            _loc_transfer_matrix(loc, list(range(0, 1)), K, length),
+            _loc_transfer_matrix(loc, list(range(1, 2)), K, length)))
     else:
         feature = np.hstack((
-            _loc_transfer_matrix(loc, list(range(0, 1)), K),
-            _loc_transfer_matrix(loc, list(range(1, 2)), K)))
+            _loc_transfer_matrix(loc, list(range(0, 1)), K, length),
+            _loc_transfer_matrix(loc, list(range(1, 2)), K, length)))
         for i in range(2, d):
-            feature = np.hstack((feature, _loc_transfer_matrix(loc, dis[i], K)))
+            feature = np.hstack((feature, _loc_transfer_matrix(loc, dis[i], K, length)))
      
-    return feature/(length*1.0) * 100
+    return feature * 100
 
 def matrix_encoding(seq, K, d):
 
