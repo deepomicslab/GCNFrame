@@ -162,7 +162,7 @@ print("The contribution score for AAAAAATTCG is %s."%score)
 
 ### Version history
 + `v0.1.1`: Add contribution score functions.
-+ `v0.0.1`: the initial version.
++ `v0.0.1`: Initial version.
 
 ### Maintainer
 WANG Ruohan ruohawang2-c@my.cityu.edu.hk
