@@ -9,6 +9,7 @@ This is a python package for genomics study with a GP-GCN (Gapped Pattern Graph 
 + cython
 + numpy
 + Biopython
++ editdistance
 + pytorch 1.7.1
 + pytorch\_geometric 1.7.0
 
@@ -62,6 +63,30 @@ Epoch 15| Loss: 0.3960| Train accuracy: 0.9342| Validation accuracy: 0.9161
 ```
 The model with best validation accuracy will be saved as GCN\_model.pt
 
+Also, the package provides users with functions to mine gapped patterns or motifs of more significant influence in prediction tasks.
+
+```Python
+# the pattern_contribution_score function returns a score list to record the contribution scores for the 4,096 gapped patterns. 
+score_list = pattern_contribution_score(fasta_file="example_data/nature_2017.fasta",
+        label_file="example_data/lifestyle_label.txt",
+        feature_file="example_data/CDD_protein_feature.txt")
+```
+The scores for the gapped-patterns will also be saved in a txt file.
+
+```Python
+# the pattern_group_contribution_score function groups similar gapped patterns and analyzes the occurrence & scores for each group.
+pattern_group_contribution_score(fasta_file="example_data/nature_2017.fasta", label_file="example_data/lifestyle_label.txt", score_list=score_list)
+```
+The results are saved as figures.
+![image](https://github.com/deepomicslab/GCNFrame/blob/master/pos_neg_match_grouped.png)
+![image](https://github.com/deepomicslab/GCNFrame/blob/master/pos_neg_score_grouped.png)
+
+```Python
+# the motif_contribution_score calculate the contribution score for a given motif.
+score = motif_contribution_score(fasta_file="example_data/nature_2017.fasta", label_file="example_data/lifestyle_label.txt", motif="AAAAAATTCG", feature_file="example_data/CDD_protein_feature.txt")
+print("The contribution score for AAAAAATTCG is %s."%score)
+```
+
 ## Parameters
 ###  ```class Biodata.Biodata```
 > + ```fasta_file```: The DNA sequences used for training and evaluation in fasta format.
@@ -104,6 +129,40 @@ The model with best validation accuracy will be saved as GCN\_model.pt
 > + ```thread```: The number of thread used for encoding (default=10).
 > + ```K```: The length of K-mer for encoding (default=3). 
 > + ```d```: The number of spaced distance used for encoding (default=3).
+
+###  ```pattern_contribution_score```
+> + ```fasta_file```: The DNA sequences used for training and evaluation in fasta format.
+> + ```label_file```: The labels for the DNA sequences for training and evaluation (should have the same order as fasta_file).
+> + ```target_label```: The label of the class being analyzed (default=1).
+> + ```model_name```: The saved model name (default="GCN_model.pt").
+> + ```feature_file```: Other features (like gene density) for the DNA sequences for training and evaluation (should have the same order as fasta_file) (default=None).
+> + ```output_file```: The output file name (default="pattern_contribution_score.txt").
+> + ```thread```: The number of thread used for encoding (default=10).
+> + ```K```: The length of K-mer for encoding (default=3). 
+> + ```d```: The number of spaced distance used for encoding (default=3).
+
+###  ```motif_contribution_score```
+> + ```fasta_file```: The DNA sequences used for training and evaluation in fasta format.
+> + ```label_file```: The labels for the DNA sequences for training and evaluation (should have the same order as fasta_file).
+> + ```motif```: The motif to be analyzed.
+> + ```target_label```: The label of the class being analyzed (default=1).
+> + ```model_name```: The saved model name (default="GCN_model.pt").
+> + ```feature_file```: Other features (like gene density) for the DNA sequences for training and evaluation (should have the same order as fasta_file) (default=None).
+> + ```thread```: The number of thread used for encoding (default=10).
+> + ```K```: The length of K-mer for encoding (default=3). 
+> + ```d```: The number of spaced distance used for encoding (default=3).
+
+###  ```motif_contribution_score```
+> + ```fasta_file```: The DNA sequences used for training and evaluation in fasta format.
+> + ```label_file```: The labels for the DNA sequences for training and evaluation (should have the same order as fasta_file).
+> + ```score_list```: The contribution scores of the 4,096 gapped patterns.
+> + ```target_label```: The label of the class being analyzed (default=1).
+> + ```d```: The number of spaced distance used for encoding (default=3).
+
+
+### Update version
++ `v0.1.1`: Add contribution score functions.
++ `v0.0.1`: the initial version.
 
 ### Maintainer
 WANG Ruohan ruohawang2-c@my.cityu.edu.hk

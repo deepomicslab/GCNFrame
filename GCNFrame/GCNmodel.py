@@ -8,7 +8,12 @@ from torch_geometric.data import DataLoader
 import torch.optim as optim
 from torch.utils.data.sampler import WeightedRandomSampler
 
+import copy
 import random
+import heapq
+import re
+import matplotlib.pyplot as plt
+from Bio import SeqIO
 from collections import Counter
 from GCNFrame import Biodata
 
@@ -209,7 +214,7 @@ def evaluation(loader, model, device):
 def test(fasta_file, model_name="GCN_model.pt", feature_file=None, output_file="test_output.txt", thread=10, K=3, d=3, device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
     data = Biodata(fasta_file=fasta_file, feature_file=feature_file, K=K, d=d)
     testset = data.encode(thread=thread)
-    model = torch.load(model_name)
+    model = torch.load(model_name, map_location=device)
     loader = DataLoader(testset, batch_size=len(testset), shuffle=False, follow_batch=['x_src', 'x_dst'])
     model.eval()
     correct = 0
@@ -223,4 +228,239 @@ def test(fasta_file, model_name="GCN_model.pt", feature_file=None, output_file="
     for each in pred:
         f.write(str(each) + "\n")
     f.close()
+
+
+####################contribution score##############################
+def f(n):
+    base = ["A", "C", "G", "T"]
+    string = ""
+    while len(string)<6:
+        s = n // 4
+        y = n % 4
+        string = string + base[y]
+        n = s
+    string = string[::-1]
+    return string
+
+
+def contribution_score(model, dataset, new_dataset, label, device):
+    dataset_loader = DataLoader(dataset, batch_size=100,follow_batch=['x_src', 'x_dst'])
+    new_dataset_loader = DataLoader(new_dataset, batch_size=100, follow_batch=['x_src', 'x_dst'])
+    model.eval()
+    data_pred_list = []
+    for data in dataset_loader:
+        with torch.no_grad():
+            data = data.to(device)
+            data_pred = model(data)
+            data_pred_list.extend(data_pred[:, label].cpu().numpy())
+
+    new_data_pred_list = []
+    for data in new_dataset_loader:
+        with torch.no_grad():
+            data = data.to(device)
+            new_data_pred = model(data)
+            new_data_pred_list.extend(new_data_pred[:, label].cpu().numpy())
+    score = np.average(np.abs(np.array(data_pred_list) - np.array(new_data_pred_list)))
+
+    return score
+
+
+def pattern_contribution_score(fasta_file, label_file, target_label=1, model_name="GCN_model.pt", feature_file=None, output_file="pattern_contribution_score.txt", thread=10, K=3, d=3, device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
+    model = torch.load(model_name, map_location=device)
+    data = Biodata(fasta_file=fasta_file, label_file=label_file, feature_file=feature_file, K=K, d=d)
+    dataset = data.encode(thread=thread)
+    dataset = [data for data in dataset if data.y==target_label]
+    score_list = []
+    patterns = [f(i) for i in range(4096)]
+    f_out = open(output_file, "w")
+    for n in range(4096):
+        print("Calculating the contribution score for %s..."%(patterns[n]))
+        new_dataset = copy.deepcopy(dataset)
+        for i in range(len(new_dataset)):
+            new_dataset[i].x_dst[n] = torch.zeros((d))
+            new_dataset[i].x_src[n // 64] = torch.zeros((1))
+            new_dataset[i].x_src[n % 64] = torch.zeros((1))
+        score = contribution_score(model, dataset, new_dataset, target_label, device)
+        score_list.append(score)
+        f_out.write(patterns[n] + "\t" + str(score) + "\n")
+    f_out.close()
+
+    return score_list
+
+
+def motif_transfer_list(motif):
+    base_dic = {"A":["0"], "C":["1"], "G":["2"], "T":["3"], "W":["0", "3"], "S":["1", "2"], "M":["0", "1"], "K":["2", "3"], "R":["0", "2"], "Y":["1", "3"], "B":["1", "2", "3"], "D":["0", "2", "3"], "H":["0", "1", "3"], "V":["0", "1", "2"], "N":["0", "1", "2", "3"]}
+    old_seq_list = [""]
+    for base in motif:
+        seq_list = []
+        for num in base_dic[base]:
+            seq_list += [s + num for s in old_seq_list]
+        old_seq_list = seq_list
+    del old_seq_list
+
+    num_list = []
+    for seq in seq_list:
+        for dis in [0, 1, 2]:
+            for i in range(0, len(seq)-6-dis+1):
+                num = int(seq[i:i+3] + seq[i+3+dis:i+6+dis], 4)
+                if num not in num_list:
+                    num_list.append(num)
+
+    return num_list
+
+
+def motif_contribution_score(fasta_file, label_file, motif, target_label=1, model_name="GCN_model.pt", feature_file=None, thread=10, K=3, d=3, device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')):
+    model = torch.load(model_name, map_location=device)
+    data = Biodata(fasta_file=fasta_file, label_file=label_file, feature_file=feature_file, K=K, d=d)
+    dataset = data.encode(thread=thread)
+    dataset = [data for data in dataset if data.y==target_label]
+    num_list = motif_transfer_list(motif)
+    new_dataset = copy.deepcopy(dataset)
+    for n in num_list:
+        for i in range(len(new_dataset)):
+            new_dataset[i].x_dst[n] = torch.zeros((d))
+            new_dataset[i].x_src[n // 64] = torch.zeros((1))
+            new_dataset[i].x_src[n % 64] = torch.zeros((1))
+    score = contribution_score(model, dataset, new_dataset, target_label, device)
+
+    return score
+
+
+def pattern_group_contribution_score(fasta_file, label_file, score_list, target_label=1, d=3, figure_dic="pattern_group_scores"):
+    if not os.path.exists(figure_dic):
+        os.mkdir(figure_dic)
+    dis_dic = {1:1, 2:2, 3:3, 4:5, 5:9, 6:17, 7:33, 8:65}
+    # read patterns and corresponding MAE
+    patterns = [f(i) for i in range(4096)]
+    pat2score = dict(zip(patterns, score_list))
+    fasta_sequences = SeqIO.parse(fasta_file, 'fasta')
+    labels = np.loadtxt(label_file)
+    seq_types = dict(zip([fasta.id for fasta in fasta_sequences], list(labels)))
+    fasta_sequences = SeqIO.parse(fasta_file, 'fasta')
+    sequences = [(fasta.id, fasta.seq) for fasta in fasta_sequences]
+    neg_seqs = [seq for (sid, seq) in sequences if seq_types[sid]!=target_label]
+    pos_seqs = [seq for (sid, seq) in sequences if seq_types[sid]==target_label]
+    
+    print("Calculating the pattern occurence. It may take a long time...")
+    M = np.zeros((len(sequences), len(patterns)))
+    for i in range(len(patterns)):
+        p = patterns[i]
+        ph = p[:3]
+        pe = p[-3:]
+        for l in range(dis_dic[d]):
+            wildcardstr = '.' * l
+            for j in range(len(sequences)):
+                seq = str(sequences[j][1])
+                matches = [m.start() for m in re.finditer('(?='+ ph + wildcardstr + pe +')', seq)]
+                M[j,i] += len(matches)
+    np.save('%s/seq_pattern_matrix'%figure_dic, M)
+    print("Calculation finished...")
+    
+    M = np.load('%s/seq_pattern_matrix.npy'%figure_dic)
+
+    MM = M.copy()
+    for i in range(M.shape[0]):
+        threshold = np.quantile(M[i,:], 0.9)
+        MM[i,np.where(M[i,:]< threshold)[0]] = 0
+        MM[i,np.where(M[i,:]>=threshold)[0]] = 1
+
+    neg_rows = [i for i in range(len(sequences)) if seq_types[sequences[i][0]]!=target_label]
+    pos_rows = [i for i in range(len(sequences)) if seq_types[sequences[i][0]]==target_label]
+
+    MM_pos = MM[pos_rows,:]
+    MM_neg = MM[neg_rows,:]
+
+    pat2posmatches = dict([(patterns[i], MM_pos[:,i].sum()) for i in range(len(patterns))])
+    pat2negmatches = dict([(patterns[i], MM_neg[:,i].sum()) for i in range(len(patterns))])
+
+    scores = [pat2score[p] for p in patterns]
+    pos_matches = [pat2posmatches[p] for p in patterns]
+    neg_matches = [pat2negmatches[p] for p in patterns]
+    ratios = [pat2posmatches[p]/pat2negmatches[p] for p in patterns]
+
+    sc = plt.scatter(pos_matches, neg_matches, marker='.', c=scores, cmap='Greens')
+    plt.colorbar(sc)
+    plt.xlabel("# of positive matches", {'size': 16})
+    plt.ylabel("# of negative matches", {'size': 16})
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.tight_layout()
+    plt.savefig("%s/pos_neg_match_single.png"%figure_dic, dpi=600)
+    plt.close()
+
+    plt.scatter(scores, ratios)
+    plt.xlabel("Contribution score", {'size': 16})
+    plt.ylabel("Pos/neg matches", {'size': 16})
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.tight_layout()
+    plt.savefig("%s/pos_neg_score_single.png"%figure_dic, dpi=600)
+    plt.close()
+
+    import editdistance
+
+    min_distinct_pat_distance = 2 # At least edit distance 2 from other representative pattern
+    min_same_group_distance = 1 # At least edit distance 1 from representative pattern to belong to group
+
+    repr_pats = []
+
+    # test from the highest scoring pattern to the lowest so that the representative pattern has the highest score
+    sorted_patterns = sorted([(p, s) for (p, s) in zip(patterns, scores)], reverse=True, key=lambda x:x[1])
+    rejected = dict((p, False) for p in patterns)
+
+    _patterns = [p for (p, s) in sorted_patterns]
+    for i in range(len(_patterns)):
+        if rejected[_patterns[i]]:
+            continue
+        repr_pats.append(_patterns[i])
+        for j in range(i+1, len(_patterns)):
+            if rejected[_patterns[j]]:
+                continue
+            if not editdistance.eval(_patterns[i], _patterns[j]) >= min_distinct_pat_distance :
+                rejected[_patterns[j]] = True
+
+    pattern_groups = dict()
+
+    for p in repr_pats:
+        group = []
+        for _p in patterns:
+            if editdistance.eval(p, _p) <= min_same_group_distance:
+                group.append(_p)
+        pattern_groups[p] = group
+
+    print("Organized into", len(repr_pats), "groups")
+    for p in repr_pats[:3]:
+        print("representative pat =", p, " members =", pattern_groups[p][:3], "...")
+    print("...")
+
+    patgrp2posmatches = dict()
+    patgrp2negmatches = dict()
+
+    for p in repr_pats:
+        patgrp2posmatches[p] = np.array([pat2posmatches[_p] for _p in pattern_groups[p]]).sum()/len(pattern_groups[p])
+        patgrp2negmatches[p] = np.array([pat2negmatches[_p] for _p in pattern_groups[p]]).sum()/len(pattern_groups[p])
+
+    scores = [pat2score[p] for p in repr_pats]
+    pos_matches = [patgrp2posmatches[p] for p in repr_pats]
+    neg_matches = [patgrp2negmatches[p] for p in repr_pats]
+    ratios = [patgrp2posmatches[p]/patgrp2negmatches[p] for p in repr_pats]
+
+    sc = plt.scatter(pos_matches, neg_matches, marker='.', c=scores, cmap='Greens')
+    plt.colorbar(sc)
+    plt.xlabel("# of positive matches", {'size': 16})
+    plt.ylabel("# of negative matches", {'size': 16})
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.tight_layout()
+    plt.savefig("%s/pos_neg_match_grouped.png"%figure_dic, dpi=600)
+    plt.close()
+
+    plt.scatter(scores, ratios)
+    plt.xlabel("Contribution score", {'size': 16})
+    plt.ylabel("Pos/neg matches", {'size': 16})
+    plt.xticks(fontsize=14)
+    plt.yticks(fontsize=14)
+    plt.tight_layout()
+    plt.savefig("%s/pos_neg_score_grouped.png"%figure_dic, dpi=600)
+    plt.close()
 

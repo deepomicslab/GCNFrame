@@ -6,7 +6,7 @@ with open("README.md", "r") as fh:
 
 setup(
     name='GCNFrame',
-    version='0.0.1',
+    version='0.1.1',
     packages=find_packages(),
     zip_safe = False,
 	url='https://github.com/deepomicslab/GCNFrame',
