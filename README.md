@@ -160,7 +160,7 @@ print("The contribution score for AAAAAATTCG is %s."%score)
 > + ```d```: The number of spaced distance used for encoding (default=3).
 
 
-### Update version
+### Version history
 + `v0.1.1`: Add contribution score functions.
 + `v0.0.1`: the initial version.
 
