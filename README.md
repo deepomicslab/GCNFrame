@@ -152,7 +152,7 @@ print("The contribution score for AAAAAATTCG is %s."%score)
 > + ```K```: The length of K-mer for encoding (default=3). 
 > + ```d```: The number of spaced distance used for encoding (default=3).
 
-###  ```motif_contribution_score```
+###  ```pattern_group_contribution_score```
 > + ```fasta_file```: The DNA sequences used for training and evaluation in fasta format.
 > + ```label_file```: The labels for the DNA sequences for training and evaluation (should have the same order as fasta_file).
 > + ```score_list```: The contribution scores of the 4,096 gapped patterns.
