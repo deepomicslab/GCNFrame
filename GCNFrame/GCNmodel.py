@@ -18,7 +18,7 @@ from collections import Counter
 from GCNFrame import Biodata
 
 class model(nn.Module):
-    def __init__(self, label_num, other_feature_dim, K=3, d=3, node_hidden_dim=3, gcn_dim=128, gcn_layer_num=4, cnn_dim=64, cnn_layer_num=3, cnn_kernel_size=8, fc_dim=100, dropout_rate=0.2, pnode_nn=True, fnode_nn=True):
+    def __init__(self, label_num, other_feature_dim, K=3, d=3, node_hidden_dim=3, gcn_dim=128, gcn_layer_num=2, cnn_dim=64, cnn_layer_num=3, cnn_kernel_size=8, fc_dim=100, dropout_rate=0.2, pnode_nn=True, fnode_nn=True):
         super(model, self).__init__()
         self.label_num = label_num
         self.pnode_dim = d
@@ -205,7 +205,7 @@ def evaluation(loader, model, device):
             pred = pred.argmax(dim=1)
             label = data.y
         correct += pred.eq(label).sum().item()
-
+    
     total = len(loader.dataset)
     acc = correct / total
 

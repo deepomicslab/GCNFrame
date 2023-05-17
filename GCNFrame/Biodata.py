@@ -7,6 +7,7 @@ import torch
 import torch_geometric.transforms as T
 import torch_geometric.utils as ut
 from torch_geometric.data import Data
+from torch_geometric.data import InMemoryDataset
 from GCNFrame import encode_seq
 
 class BipartiteData(Data):
@@ -51,8 +52,55 @@ class GraphDataset():
 
         return data_list
 
+
+class GraphDatasetInMem(InMemoryDataset):
+
+    def __init__(self, pnode_feature, fnode_feature, other_feature, edge, graph_label, root, transform=None, pre_transform=None):
+        self.pnode_feature = pnode_feature
+        self.fnode_feature = fnode_feature
+        self.other_feature = other_feature
+        self.edge = edge
+        self.graph_label = graph_label
+        super(GraphDatasetInMem, self).__init__(root, transform, pre_transform)
+        self.data, self.slices = torch.load(self.processed_paths[0])
+
+    @property
+    def raw_file_names(self):
+        return []
+
+    @property
+    def processed_file_names(self):
+        return ['test.dataset']
+
+    def download(self):
+        pass
+
+    def process(self):
+        data_list = []  # graph classification need to define data_list for multiple graph
+        for i in range(self.pnode_feature.shape[0]):
+            edge_index = torch.tensor(self.edge, dtype=torch.long)  # edge_index should be long type
+
+            x_p = torch.tensor(self.pnode_feature[i, :, :], dtype=torch.float)
+            x_f = torch.tensor(self.fnode_feature[i, :, :], dtype=torch.float)
+            if type(self.graph_label) == np.ndarray:
+                y = torch.tensor([self.graph_label[i]], dtype=torch.long)
+                data = BipartiteData(x_src=x_f, x_dst=x_p, edge_index=edge_index, y=y, num_nodes=None)
+            else:
+                data = BipartiteData(x_src=x_f, x_dst=x_p, edge_index=edge_index, num_nodes=None)
+
+            if type(self.other_feature) == np.ndarray:
+                other_feature = torch.tensor(self.other_feature[i, :], dtype=torch.float)
+                data._add_other_feature(other_feature)
+
+            data_list.append(data)
+        data, slices = self.collate(data_list)  # Here used to be [data] for one graph
+        torch.save((data, slices), self.processed_paths[0])
+
+        return data_list
+
+
 class Biodata:
-    def __init__(self, fasta_file, label_file=None, feature_file=None, K=3, d=3):
+    def __init__(self, fasta_file, label_file=None, feature_file=None, K=3, d=3, seqtype="DNA"):
         self.dna_seq = {}
         for seq_record in SeqIO.parse(fasta_file, "fasta"):
             self.dna_seq[seq_record.id] = str(seq_record.seq)
@@ -64,6 +112,7 @@ class Biodata:
         
         self.K = K
         self.d = d
+        self.seqtype = seqtype
 
         self.edge = []
         for i in range(4**(K*2)):
@@ -78,11 +127,11 @@ class Biodata:
         else:
             self.label = None
     
-    def encode(self, thread=10):
+    def encode(self, thread=10, save_dataset=True, save_path="./"):
         print("Encoding sequences...")
         seq_list = list(self.dna_seq.values())
         pool = Pool(thread)
-        partial_encode_seq = partial(encode_seq.matrix_encoding, K=self.K, d=self.d)
+        partial_encode_seq = partial(encode_seq.matrix_encoding, K=self.K, d=self.d, seqtype=self.seqtype)
         feature = np.array(pool.map(partial_encode_seq, seq_list))
         pool.close()
         pool.join()
@@ -92,9 +141,13 @@ class Biodata:
         self.fnode_feature = np.sum(zero_layer, axis=2).reshape(-1, 4**self.K, 1)
         del zero_layer
         
-        graph = GraphDataset(self.pnode_feature, self.fnode_feature, self.other_feature, self.edge, self.label)
-        dataset = graph.process()
+        if save_dataset:
+            dataset = GraphDatasetInMem(self.pnode_feature, self.fnode_feature, self.other_feature, self.edge, self.label, root=save_path)
         
+        else:
+            graph = GraphDataset(self.pnode_feature, self.fnode_feature, self.other_feature, self.edge, self.label)
+            dataset = graph.process()
+
         return dataset
 
 

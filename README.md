@@ -94,7 +94,10 @@ print("The contribution score for AAAAAATTCG is %s."%score)
 > + ```feature_file```: Other features (like gene density) for the DNA sequences for training and evaluation (should have the same order as fasta_file) (default=None).
 > + ```K```: The length of K-mer for encoding (default=3). 
 > + ```d```: The number of spaced distance used for encoding (default=3).
+> + ```seqtype```: The type of input sequence, DNA or RNA (default=DNA).
 > + ```thread```: The number of thread used for encoding (default=10).
+> + ```save_dataset```: Save the encoded dataset and use it next time (default=True).
+> + ```save_path```: The path for saving the encoded dataset (default="./").
 
 ###  ```class GCNmodel.model```
 > + ```label_num```: The number of labels.
@@ -103,7 +106,7 @@ print("The contribution score for AAAAAATTCG is %s."%score)
 > + ```d```: The number of spaced distance used for encoding (default=3).
 > + ```node_hidden_dim```: The size for kmer nodes after transformation(default=3).
 > + ```gcn_dim```: The size of output of SAGEConv (default=128).
-> + ```gcn_layer_num```: The number of SAGEConv layers (default=4).
+> + ```gcn_layer_num```: The number of SAGEConv layers (default=2).
 > + ```cnn_dim```: The size of output of convolutional layers (default=64).
 > + ```cnn_layer_num```: The number of convolutional layers (default=3).
 > + ```cnn_kernel_size```: The kernel size of convolutional layers (default=8).
@@ -161,6 +164,7 @@ print("The contribution score for AAAAAATTCG is %s."%score)
 
 
 ### Version history
++ `v0.1.2`: Extension to RNA sequences & Enabling saving encoded data.
 + `v0.1.1`: Add contribution score functions.
 + `v0.0.1`: Initial version.
 

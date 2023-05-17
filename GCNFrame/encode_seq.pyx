@@ -5,8 +5,11 @@ cimport cython
 @cython.boundscheck(False)
 @cython.wraparound(False)
 
-cdef str _num_transfer(str seq):
-    seq = seq.replace("A", "0").replace("C", "1").replace("G", "2").replace("T", "3")
+cdef str _num_transfer(str seq, str seqtype):
+    if seqtype == "DNA":
+        seq = seq.replace("A", "0").replace("C", "1").replace("G", "2").replace("T", "3")
+    elif seqtype == "RNA":
+        seq = seq.replace("A", "0").replace("C", "1").replace("G", "2").replace("U", "3")
     seq = ''.join(list(filter(str.isdigit, seq)))
 
     return seq    
@@ -37,14 +40,14 @@ cdef np.ndarray[np.float64_t, ndim=1] _loc_transfer_matrix(list loc_list, list d
     
     return new_matrix
 
-cdef np.ndarray[np.float64_t, ndim=1] _matrix_encoding(str seq, int K, int d):
+cdef np.ndarray[np.float64_t, ndim=1] _matrix_encoding(str seq, int K, int d, str seqtype):
     cdef int length
     cdef np.ndarray[np.float64_t, ndim=1] feature
     cdef str num_seq
     cdef list loc, dis
     seq = seq.upper()
     length = len(seq)
-    num_seq = _num_transfer(seq)
+    num_seq = _num_transfer(seq, seqtype)
     loc = _num_transfer_loc(num_seq, K)
     dis = [list(range(0, 1)), list(range(1, 2)), list(range(2, 3)),
             list(range(3, 5)), list(range(5, 9)), list(range(9, 17)), list(range(17, 33)),
@@ -65,7 +68,7 @@ cdef np.ndarray[np.float64_t, ndim=1] _matrix_encoding(str seq, int K, int d):
      
     return feature * 100
 
-def matrix_encoding(seq, K, d):
+def matrix_encoding(seq, K, d, seqtype):
 
-    return _matrix_encoding(seq, K, d)
+    return _matrix_encoding(seq, K, d, seqtype)
 
