@@ -174,13 +174,4 @@ WANG Ruohan ruohawang2-c@my.cityu.edu.hk
 
 
 ### Reference
-@article{wang2024coding,
-  title={Coding genomes with gapped pattern graph convolutional network},
-  author={Wang, Ruo Han and Ng, Yen Kaow and Zhang, Xianglilan and Wang, Jianping and Li, Shuai Cheng},
-  journal={Bioinformatics},
-  volume={40},
-  number={4},
-  pages={btae188},
-  year={2024},
-  publisher={Oxford University Press}
-}
+Wang, R. H., Ng, Y. K., Zhang, X., Wang, J., & Li, S. C. (2024). Coding genomes with gapped pattern graph convolutional network. Bioinformatics, 40(4), btae188.
