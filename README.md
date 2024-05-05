@@ -168,5 +168,19 @@ print("The contribution score for AAAAAATTCG is %s."%score)
 + `v0.1.1`: Add contribution score functions.
 + `v0.0.1`: Initial version.
 
+
 ### Maintainer
 WANG Ruohan ruohawang2-c@my.cityu.edu.hk
+
+
+### Reference
+@article{wang2024coding,
+  title={Coding genomes with gapped pattern graph convolutional network},
+  author={Wang, Ruo Han and Ng, Yen Kaow and Zhang, Xianglilan and Wang, Jianping and Li, Shuai Cheng},
+  journal={Bioinformatics},
+  volume={40},
+  number={4},
+  pages={btae188},
+  year={2024},
+  publisher={Oxford University Press}
+}
